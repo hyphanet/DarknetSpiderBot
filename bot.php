@@ -1,21 +1,27 @@
 <?php
+set_time_limit(60);
 
 require_once('config.php'); 
 
 //$url = $addresse_fcp.$start_page;
 //$url = 'http://www.lemonde.fr/';
-$sitepath = "/SSK@PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE/Index-21/all.html";
+
+$sitekey = 'PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE';
+$sitename = 'Index';
+
+$sitepath = "/USK@$sitekey/$sitename";
 
 $buffer_file = 'local.html';
 
 $bot = new bot();
-$bot->getDistantFile($buffer_file, $fcp, $sitepath);
-echo 'title: '.$bot->extractTitle();
 
-$urls = $bot->extractURLs();
-$bot->reconstructURLs($urls, $sitepath);
+$bot->getDistantFile($buffer_file, $fcp_host, $fcp_port, $sitepath.'/-1');
+//$bot->buffer_contents = $bot->getFileContents($buffer_file);
 
-print_r($urls);
+//$urls = $bot->extractURLs();
+//$bot->cleanURLs($urls, $sitekey, $sitename);
+
+//print_r($urls);
 //echo $bot->buffer_contents;
 
 
@@ -23,11 +29,30 @@ class bot {
 	
 	var $buffer_contents;
 	
-	function getDistantFile ($buffer_file, $fcp, $sitepath='')
+	function getDistantFile ($buffer_file, $fcp_host, $fcp_port, $sitepath='')
 	{
 		global $timeout, $wget_dir;
 		
-		exec($wget_dir."wget.exe --timeout=$timeout ${fcp}$sitepath -O $buffer_file");
+		//exec($wget_dir."wget.exe --timeout=$timeout ${fcp}$sitepath -O $buffer_file");
+		
+		$fp = fsockopen($fcp_host, $fcp_port, $errno, $errstr, $timeout);
+		if (!$fp) {
+			echo "$errstr ($errno)<br />\n";
+		}
+		else
+		{
+			$out = "GET $sitepath HTTP/1.1\r\n";
+			$out .= "Host: $fcp_host\r\n";
+			$out .= "Connection: Close\r\n\r\n";
+		
+			fwrite($fp, $out);
+			
+			while (!feof($fp)) {
+				echo fgets($fp, 128);
+			}
+			fclose($fp);
+		}
+		
 		$this->buffer_contents = $this->getFileContents($buffer_file);
 	}
 	
@@ -39,6 +64,11 @@ class bot {
 		fclose($handle);
 		
 		return $contents;
+	}
+	
+	function getLastEdition ()
+	{
+		
 	}
 	
 	function extractTitle ()
@@ -81,32 +111,42 @@ class bot {
 	    	
 	}
 	
-	function reconstructURLs (&$urls, $sitepath)
+	function cleanURLs (&$urls, $sitekey, $sitename)
 	{
-
+		// todo: support des ../
+		
 		foreach ($urls as $key => $value)
 		{
-				
+			
+			$value = trim($value);
+			
 			if ( substr($value, 0, 7) == 'http://') // si l'url commence par http://, on la retire
+			{
 				$value = '';
-				
-			if ( substr($value, -1) == '/') // si l'url fini par un slash, on le retire
-				$value = substr($value, 0, -1);
-
-			if ( substr($value, 0, 1) != '/') // si ce n'est pas une url absolue alors
+			}
+			elseif ( substr($value, 0, 1) != '/') // si ce n'est pas une url absolue alors
 			{
 				if ( substr($value, 0, 2) == './') // on enlève éventuellement ./
 					$value = substr($value, 2);
 				
 				// on ajoute $sitepath
-				$value = $sitepath.'/'.$value;
+				$value = '/'.$sitekey.'/'.$sitename.'/'.$value;
 			}
 			
+			if ( substr($value, -1) == '/') // si l'url fini par un slash, on le retire
+				$value = substr($value, 0, -1);
+			
+			// On retire les liens vers les diverses versions
+			if ( preg_match("#^/[A-Z]{3,3}@$sitekey/$sitename/?-[0-9]+$#i", $value, $matches, PREG_OFFSET_CAPTURE) )
+				$value = '';
+				
 			// mise à jour de l'url
 			$urls[$key] = $value; 
 		
 		}
 	}
+	
+
 }
 
 

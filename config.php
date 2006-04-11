@@ -1,9 +1,10 @@
 <?php
 
 $timeout = "20"; 
-$fcp = "http://127.0.0.1:8888";
+$fcp_host = "127.0.0.1";
+$fcp_port = '8888';
 
-$wget_dir = 'D:\\Darknet\\bin\\';
+$wget_dir = 'c:\\wget\\';
 
 $hostname_bot = "";
 $database_bot = "";
