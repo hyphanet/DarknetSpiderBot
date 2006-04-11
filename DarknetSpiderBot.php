@@ -6,7 +6,7 @@ require_once('include/config.inc.php');
 
 $buffer_file = 'local.html';
 
-$site_key = 'PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE';
+$key_value = 'PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE';
 $site_name = 'Index';
 $last_know_edition = '20';
 
@@ -14,7 +14,9 @@ $last_know_edition = '20';
 
 $bot = new bot($fcp_host, $fcp_port, $buffer_file);
 
-echo $bot->getLastEdition($site_key, $site_name, $last_know_edition);
+$url = $bot->getLastEdition($key_value, $site_name, $last_know_edition);
+print_r($bot->splitURL($url.'/test/index.html'));
+
 
 //$sitepath = "/USK@$sitekey/$sitename";
 //$bot->getDistantFile($fcp_host, $fcp_port, $sitepath.'/-1');
@@ -81,10 +83,10 @@ class bot {
 		return $contents;
 	}
 	
-	function getLastEdition ($site_key, $site_name, $last_know_edition)
+	function getLastEdition ($key_value, $site_name, $last_know_edition)
 	{
-		$path = "/USK@$site_key/$site_name/-$last_know_edition";
-		//$path = "/USK@$site_key/$site_name/$last_know_edition";
+		//$path = "/USK@$key_value/$site_name/-$last_know_edition";
+		$path = "/USK@$key_value/$site_name/$last_know_edition";
 		
 		$this->getDistantFile($path, 60);
 		
@@ -92,6 +94,35 @@ class bot {
 			return $matches[1];
 			
 		return false;
+	}
+	
+	function splitURL ($url)
+	{
+		// the URL must begin by /[freenet:]KEY@
+		
+		// strip freenet:
+		if ( substr($url, 0, 9) == '/freenet:')
+			$url = '/'.substr($url, 9);
+		
+		
+		$splitedURL['key_type'] = substr($url, 1, 3);
+		
+		$second_slashe_pos = strpos($url, '/', 5);
+		$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
+		
+		//if ( preg_match('#(.+)[/-]+([0-9]+)(.+)#', substr($url, $second_slashe_pos+1), $matches ) )
+		if ( preg_match('/^[a-zA-Z0-9]+-[0-9]+/[a-zA-Z0-9\.\/_-]+$/', substr($url, $second_slashe_pos+1), $matches ) )
+			$splitedURL['site_name'] = $matches[1];
+			
+		echo 't:'.substr($url, $second_slashe_pos+1).'end';
+			
+		print_r($matches);
+		
+		
+		//
+		
+			
+		return $splitedURL;
 	}
 	
 	function extractTitle ()
