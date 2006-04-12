@@ -103,24 +103,18 @@ class bot {
 		// strip freenet:
 		if ( substr($url, 0, 9) == '/freenet:')
 			$url = '/'.substr($url, 9);
-		
+
 		
 		$splitedURL['key_type'] = substr($url, 1, 3);
 		
 		$second_slashe_pos = strpos($url, '/', 5);
 		$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
 		
-		//if ( preg_match('#(.+)[/-]+([0-9]+)(.+)#', substr($url, $second_slashe_pos+1), $matches ) )
-		if ( preg_match('/^[a-zA-Z0-9]+-[0-9]+/[a-zA-Z0-9\.\/_-]+$/', substr($url, $second_slashe_pos+1), $matches ) )
-			$splitedURL['site_name'] = $matches[1];
+		preg_match('#^(.+)[/-]+([0-9]+)/*(.*)$#', substr($url, $second_slashe_pos+1), $matches );
+		$splitedURL['site_name'] = $matches[1];
+		$splitedURL['edition'] = $matches[2];
+		$splitedURL['path'] = $matches[3];
 			
-		echo 't:'.substr($url, $second_slashe_pos+1).'end';
-			
-		print_r($matches);
-		
-		
-		//
-		
 			
 		return $splitedURL;
 	}

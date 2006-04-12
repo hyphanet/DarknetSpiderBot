@@ -20,11 +20,21 @@ else
 	$out .= "EndMessage\r\n";	
 	
 	fwrite($fp, $out);
-
-	while ( !feof($fp) )
+	
+	$i=1;
+	while ( !feof($fp) && $i<30)
 	{  
 		$buffer = fgets($fp);
+		$buffer_1 .= $buffer;
+		
+		if ($buffer === false)
+			break;
+			
+		$i++;
+
 		//echo $buffer;
+		
+		/*
 		if (preg_match_all('/NodeHello/si', $buffer, $match)) { 
 			echo "ok connection\n";
 			break; 
@@ -33,10 +43,13 @@ else
 			echo "non ok connection\n";
 			break; 
 		}
+		*/
 	}
 
+	echo "\n\nb1\n$buffer_1\n\n";
 
-
+	
+	/*
 	$out = "ClientGet\r\n";
 	$out .= "URI=$addresse\r\n";
 	$out .= "Identifier=Request Number One\r\n";
@@ -73,14 +86,22 @@ else
 			}
 		}
 		
-		if (preg_match_all('/<html>/si', $buffer, $match)) { 
+		
+		if (preg_match_all('/<\/html>/si', $buffer, $match)) { 
 			//echo "ok";
 			break; 
 		}
-
+		
+		/*
+		if (!$buffer)
+			break;
+		*/ /*
+		$buffer_total .= $buffer;
 	}
 	
 	fclose($fp);
-
+	
+	echo $buffer;
+*/
 }
 ?>
