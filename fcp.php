@@ -21,50 +21,38 @@ else
 	
 	fwrite($fp, $out);
 	
-	$i=1;
-	while ( !feof($fp) && $i<30)
+	while ( !feof($fp) )
 	{  
 		$buffer = fgets($fp);
-		$buffer_1 .= $buffer;
-		
-		if ($buffer === false)
-			break;
-			
-		$i++;
 
-		//echo $buffer;
-		
-		/*
 		if (preg_match_all('/NodeHello/si', $buffer, $match)) { 
-			echo "ok connection\n";
-			break; 
+			//echo "ok connection\n";
+			//break; 
 		}
 		elseif (preg_match_all('/ProtocolError/si', $buffer, $match)) { 
 			echo "non ok connection\n";
 			break; 
 		}
-		*/
+	
+		if (preg_match_all('/EndMessage/si', $buffer, $match)) { 
+			//echo "ok connection\n";
+			break; 
+		}
+	
 	}
 
-	echo "\n\nb1\n$buffer_1\n\n";
-
-	
-	/*
 	$out = "ClientGet\r\n";
 	$out .= "URI=$addresse\r\n";
 	$out .= "Identifier=Request Number One\r\n";
-	$out .= "ReturnType=direct\r\n";
+	$out .= "ReturnType=NONE\r\n";
 	$out .= "Verbosity=1\r\n";
 	$out .= "EndMessage\r\n";
 	
 	fwrite($fp, $out);
-	
-	$stop = 0;
-	
+	$count = 1;
 	while ( !feof($fp) )
 	{  
 		$buffer = fgets($fp);
-		//echo $buffer;
 
 		if (preg_match_all('/ExtraDescription/si', $buffer, $match)) { 
 			$ExtraDescription = explode("=",$buffer);
@@ -76,32 +64,42 @@ else
 			$content_type = explode("=",$buffer);
 			$content_type = $content_type[1];
 			
-			if (preg_match_all('/text\/html/si', $content_type, $match)) { 
-				echo "ok html";
-				break; 
-			}
+			if (preg_match_all('/text\/html/si', $content_type, $match)) { 	}
 			else {
 				echo "non ok html";
 				break;
 			}
 		}
 		
-		
-		if (preg_match_all('/<\/html>/si', $buffer, $match)) { 
-			//echo "ok";
+		if (preg_match_all('/EndMessage/si', $buffer, $match)) { 
+			$count = $count + 1;
+			if ($count > 2) { break; }
+		}
+	}
+
+	$out = "ClientGet\r\n";
+	$out .= "URI=$addresse\r\n";
+	$out .= "Identifier=Request Number One\r\n";
+	$out .= "ReturnType=DISK\r\n";
+	$out .= "Filename=D:\\Darknet\\bot\\test1.html\r\n";
+	$out .= "Verbosity=0\r\n";
+	$out .= "EndMessage\r\n";
+	
+	fwrite($fp, $out);
+	
+	while ( !feof($fp) )
+	{  
+		$buffer = fgets($fp);
+		echo $buffer;
+
+		if (preg_match_all('/EndMessage/si', $buffer, $match)) { 
 			break; 
 		}
-		
-		/*
-		if (!$buffer)
-			break;
-		*/ /*
-		$buffer_total .= $buffer;
+
 	}
-	
-	fclose($fp);
-	
-	echo $buffer;
-*/
+
+echo "ok out";
+
+fclose($fp);
 }
 ?>
