@@ -20,7 +20,7 @@ $bot->getDistantFile($path);
 
 echo $bot->extractTitle();
 
-
+$bot->dbAddFreesite($splitedURL);
 
 echo "\r\nDarknetSpiderBot is closing...\r\n";
 ?>

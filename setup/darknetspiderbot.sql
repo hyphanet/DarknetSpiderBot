@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 -- 
 -- Serveur: localhost
--- Généré le : Jeudi 13 Avril 2006 à 21:48
+-- Généré le : Jeudi 13 Avril 2006 à 22:15
 -- Version du serveur: 4.0.20
 -- Version de PHP: 4.3.4
 -- 
@@ -39,6 +39,8 @@ CREATE TABLE `freesites_keys` (
   `id` smallint(5) unsigned NOT NULL auto_increment,
   `key_type` enum('CHK','SSK') NOT NULL default 'CHK',
   `key_value` varchar(255) NOT NULL default '',
+  `site_name` varchar(255) NOT NULL default '',
+  `edition` smallint(5) unsigned NOT NULL default '0',
   `created` timestamp(14) NOT NULL,
   `last_update` timestamp(14) NOT NULL default '00000000000000',
   PRIMARY KEY  (`id`),

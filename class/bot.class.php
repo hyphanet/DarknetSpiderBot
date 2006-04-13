@@ -200,6 +200,15 @@ class bot {
 	    	
 	}
 	
+	
+	// Database processing
+	function dbAddFreesite ($splitedURL)
+	{
+		if ( $splitedURL['key_type'] != 'CHK' )
+			$splitedURL['key_type'] = 'SSK';
+		
+		mysql_query("INSERT INTO freesites_keys ( key_type, key_value, site_name, edition, created, last_update ) VALUES ('$splitedURL[key_type]', '$splitedURL[key_value]', '$splitedURL[site_name]', '$splitedURL[edition]', NOW(), NOW() ) ");
+	}
 
 }
 
