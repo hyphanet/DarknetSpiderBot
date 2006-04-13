@@ -3,7 +3,7 @@ set_time_limit(90);
 
 require_once('include/config.inc.php');
 require_once('class/bot.class.php');
-require_once('database_connection.inc.php');
+require_once('include/database_connection.inc.php');
 
 
 $buffer_file = 'local.html';
