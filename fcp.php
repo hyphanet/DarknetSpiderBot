@@ -6,7 +6,7 @@ $fcp_host = "127.0.0.1";
 $fcp_port = '9481';
 $filename = "D:\\darknet\\bot\\local.html";
 
-$addresse = "USK@PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE/Index/20/";
+$addresse = "SSK@PFeLTa1si2Ml5sDeUy7eDhPso6TPdmw-2gWfQ4Jg02w,3ocfrqgUMVWA2PeorZx40TW0c-FiIOL-TWKQHoDbVdE,AQABAAE/Index-21/";
 
 $ok_hello = 0;
 $error = NULL;
@@ -89,12 +89,16 @@ else
 				}
 			}
 	
-			//Check if the key is USK
-			if (preg_match_all('/GetFailed/si', $buffer, $match)) { 
+			//On GetFailed increase count to 2
+			if (preg_match_all('/GetFailed/si', $buffer, $match)) { 			
+				$count = 2;
+			}
+
+			//Get the error description on error
+			if (preg_match_all('/CodeDescription/si', $buffer, $match)) { 
 				$CodeDescription = explode("=",$buffer);
 				$CodeDescription = $CodeDescription[1];
 				$error = "Get Failed : $CodeDescription";
-				$count = 2;
 			}
 			
 			//If no problem break after two EndMessage		
@@ -163,6 +167,8 @@ else
 			//Close the file
 			fclose($fp1);
 
+			//Delete the local file
+			unlink($filename);
 		}
 	}
 	
