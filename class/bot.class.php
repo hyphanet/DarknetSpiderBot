@@ -53,10 +53,8 @@ class bot {
 		return $contents;
 	}
 	
-	function getLastEdition ($key_value, $site_name, $last_know_edition)
+	function getLastEdition ($path)
 	{
-		//$path = "/USK@$key_value/$site_name/-$last_know_edition";
-		$path = "/USK@$key_value/$site_name/$last_know_edition";
 		
 		$this->getDistantFile($path, 60);
 		
@@ -82,13 +80,46 @@ class bot {
 		$second_slashe_pos = strpos($url, '/', 5);
 		$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
 		
-		preg_match('#^(.+)[/-]+([0-9]+)/*(.*)$#', substr($url, $second_slashe_pos+1), $matches );
-		$splitedURL['site_name'] = $matches[1];
-		$splitedURL['edition'] = $matches[2];
-		$splitedURL['path'] = $matches[3];
+		if ( $splitedURL['key_type'] == 'CHK' )
+		{
+			$splitedURL['path'] = substr($url, $second_slashe_pos+1);
+		}
+		else
+		{
+			preg_match('#^(.+)[/-]+([0-9]+)(.*)$#', substr($url, $second_slashe_pos+1), $matches );
+			$splitedURL['site_name'] = $matches[1];
+			$splitedURL['edition'] = $matches[2];
+			$splitedURL['path'] = $matches[3];
+		}
+		
+		if ( substr($splitedURL['path'], 0, 1) == '/' )
+			$splitedURL['path'] = substr($splitedURL['path'], 1);
 			
 			
 		return $splitedURL;
+	}
+	
+	function constructURL ($splitedURL)
+	{
+		switch ($splitedURL['key_type'])
+		{
+			case 'USK':
+				$url = '/USK@'.$splitedURL['key_value'].'/'.$splitedURL['site_name'].'/-'.$splitedURL['edition'];
+				break;
+				
+			case 'SSK':
+				$url = '/SSK@'.$splitedURL['key_value'].'/'.$splitedURL['site_name'].'-'.$splitedURL['edition'].'/'.$splitedURL['path'];
+				break;
+				
+			case 'CHK':
+				$url = '/CHK@'.$splitedURL['key_value'].'/'.$splitedURL['path'];
+				break;
+				
+			default:
+				return false;
+		}
+		return $url;
+	
 	}
 	
 
@@ -131,14 +162,14 @@ class bot {
 	// Extraction processing functions
 	function extractTitle ()
 	{
-		if ( preg_match_all('/<title>(.+?)<\/title>/s', $this->buffer_contents, $title) ) {
+		if ( preg_match_all('/<title>(.+?)<\/title>/s', $this->buffer, $title) ) {
 			return $title[1][0];
 		}
 	}
 	
 	function extractMetas ()
 	{
-		if (preg_match_all('/<meta(.+?)>/si', $this->buffer_contents, $matches))
+		if (preg_match_all('/<meta(.+?)>/si', $this->buffer, $matches))
 		{
 			foreach ($matches[1] as $value) // contenu de chaque balise meta
 			{
