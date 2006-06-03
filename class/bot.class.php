@@ -8,6 +8,8 @@ class bot {
 	var $buffer;
 	var $buffer_file;
 	
+	var $current_urls;
+	
 	// Constructor
 	function bot ($fcp_host, $fcp_port, $buffer_file)
 	{
@@ -78,18 +80,35 @@ class bot {
 		$splitedURL['key_type'] = substr($url, 1, 3);
 		
 		$second_slashe_pos = strpos($url, '/', 5);
-		$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
+		
 		
 		if ( $splitedURL['key_type'] == 'CHK' )
 		{
-			$splitedURL['path'] = substr($url, $second_slashe_pos+1);
+			if ($second_slashe_pos != 0)
+			{
+				$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
+				$splitedURL['path'] = substr($url, $second_slashe_pos+1);
+			}
+			else
+			{
+				$splitedURL['key_value'] = substr($url, 5);
+			}
 		}
 		else
 		{
-			preg_match('#^(.+)[/-]+([0-9]+)(.*)$#', substr($url, $second_slashe_pos+1), $matches );
-			$splitedURL['site_name'] = $matches[1];
-			$splitedURL['edition'] = $matches[2];
-			$splitedURL['path'] = $matches[3];
+			//$path = substr($url, $second_slashe_pos+1);
+			$splitedURL['key_value'] = substr($url, 5, $second_slashe_pos-5);
+			
+			if ( preg_match('#^([^/]+)[/-]+([0-9]+)/*(.*)$#', substr($url, $second_slashe_pos+1), $matches ) )
+			{
+				$splitedURL['site_name'] = $matches[1];
+				$splitedURL['edition'] = $matches[2];
+				$splitedURL['path'] = $matches[3];
+			}
+			else
+			{
+				$splitedURL['site_name'] = substr($url, $second_slashe_pos+1);
+			}
 		}
 		
 		if ( substr($splitedURL['path'], 0, 1) == '/' )
@@ -124,7 +143,7 @@ class bot {
 	
 
 	
-	function cleanURLs (&$urls, $sitekey, $sitename)
+	function cleanURLs (&$urls, $key_type, $key_value, $site_name, $edition)
 	{
 		// todo: support des ../
 		
@@ -133,7 +152,7 @@ class bot {
 			
 			$value = trim($value);
 			
-			if ( substr($value, 0, 7) == 'http://') // si l'url commence par http://, on la retire
+			if ( substr($value, 0, 7) == 'http://' || substr($value, 0, 13) == '/?newbookmark' ) // si l'url commence par http://, on la retire
 			{
 				$value = '';
 			}
@@ -143,14 +162,14 @@ class bot {
 					$value = substr($value, 2);
 				
 				// on ajoute $sitepath
-				$value = '/'.$sitekey.'/'.$sitename.'/'.$value;
+				$value = '/'.$key_type.'@'.$key_value.'/'.$site_name.'-'.$edition.'/'.$value;
 			}
 			
 			if ( substr($value, -1) == '/') // si l'url fini par un slash, on le retire
 				$value = substr($value, 0, -1);
 			
 			// On retire les liens vers les diverses versions
-			if ( preg_match("#^/[A-Z]{3,3}@$sitekey/$sitename/?-[0-9]+$#i", $value, $matches, PREG_OFFSET_CAPTURE) )
+			if ( preg_match("#^/[A-Z]{3,3}@$key_value/$site_name/?-[0-9]+$#i", $value, $matches, PREG_OFFSET_CAPTURE) )
 				$value = '';
 				
 			// mise à jour de l'url
@@ -181,21 +200,21 @@ class bot {
 				}
 				
 				if ( !empty($buf['name']) && !empty($buf['content']) )
-					$meta[$buf['name']] = $buf['content'];
+					$metas[$buf['name']] = $buf['content'];
 
 				unset($buf);
 
 			}
 		}
 		
-		return $meta;
+		return $metas;
 		
 	}
 	
 	function extractURLs ()
 	{
 			
-	    if ( preg_match_all('/<a href="(.*?)".*>/i', $this->buffer_contents, $matches) )  
+	    if ( preg_match_all('/<a href="(.*?)".*>/i', $this->buffer, $matches) )  
 	    	return $matches[1];
 	    	
 	}
@@ -208,6 +227,42 @@ class bot {
 			$splitedURL['key_type'] = 'SSK';
 		
 		mysql_query("INSERT INTO freesites_keys ( key_type, key_value, site_name, edition, created, last_update ) VALUES ('$splitedURL[key_type]', '$splitedURL[key_value]', '$splitedURL[site_name]', '$splitedURL[edition]', NOW(), NOW() ) ");
+		
+		return mysql_insert_id();
+	}
+	
+	function dbGetFreesiteId ($splitedURL)
+	{
+		
+		$result = mysql_query("SELECT id FROM freesites_keys WHERE key_value = '$splitedURL[key_value]' ");
+		if ( mysql_num_rows($result) > 0 )
+		{
+			list($id_freesite) = mysql_fetch_row($result);
+			return $id_freesite;
+		}
+		else
+			return false;
+	}
+	
+	function dbAddFreesiteInformations ($id_freesite, $title, $metas)
+	{
+		
+		mysql_query("INSERT INTO freesites_informations ( id_freesite, title, meta_description, meta_keywords ) VALUES ( '$id_freesite', '$title', '$metas[description]', '$metas[keywords]' ) ");
+	}
+	
+	function dbAddFreesiteURL ($id_freesite, $url)
+	{
+		
+		mysql_query("INSERT INTO freesites_urls ( id_freesite, path ) VALUES ( '$id_freesite', '$url' ) ");
+	}
+	
+	function requestingFreesite ($splitedURL)
+	{
+		
+		$path = $this->constructURL($splitedURL);
+		$this->getDistantFile($path);
+		
+		
 	}
 
 }

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 2.6.1-rc2
+-- version 2.6.1
 -- http://www.phpmyadmin.net
 -- 
 -- Serveur: localhost
--- Généré le : Jeudi 13 Avril 2006 à 22:15
--- Version du serveur: 4.0.20
--- Version de PHP: 4.3.4
+-- Généré le : Samedi 03 Juin 2006 à 18:45
+-- Version du serveur: 4.1.9
+-- Version de PHP: 4.3.10
 -- 
 -- Base de données: `darknetspiderbot`
 -- 
@@ -17,17 +17,12 @@
 -- 
 
 CREATE TABLE `freesites_informations` (
-  `id_freesites` smallint(5) unsigned NOT NULL default '0',
+  `id_freesite` smallint(5) unsigned NOT NULL default '0',
   `title` varchar(255) NOT NULL default '',
   `meta_description` varchar(255) NOT NULL default '',
   `meta_keywords` text NOT NULL,
-  UNIQUE KEY `id_freesites` (`id_freesites`)
-) TYPE=MyISAM;
-
--- 
--- Contenu de la table `freesites_informations`
--- 
-
+  UNIQUE KEY `id_freesite` (`id_freesite`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -41,17 +36,12 @@ CREATE TABLE `freesites_keys` (
   `key_value` varchar(255) NOT NULL default '',
   `site_name` varchar(255) NOT NULL default '',
   `edition` smallint(5) unsigned NOT NULL default '0',
-  `created` timestamp(14) NOT NULL,
-  `last_update` timestamp(14) NOT NULL default '00000000000000',
+  `created` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `last_update` timestamp NOT NULL default '0000-00-00 00:00:00',
   PRIMARY KEY  (`id`),
   UNIQUE KEY `key_value` (`key_value`),
   KEY `last_update` (`last_update`)
-) TYPE=MyISAM AUTO_INCREMENT=1 ;
-
--- 
--- Contenu de la table `freesites_keys`
--- 
-
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 AUTO_INCREMENT=1 ;
 
 -- --------------------------------------------------------
 
@@ -60,13 +50,9 @@ CREATE TABLE `freesites_keys` (
 -- 
 
 CREATE TABLE `freesites_urls` (
-  `id_freesites` smallint(6) NOT NULL default '0',
-  `url` varchar(255) NOT NULL default '',
+  `id_freesite` smallint(5) unsigned NOT NULL default '0',
+  `path` varchar(255) NOT NULL default '',
   `status` enum('standby','retrieving','retrieved','error') NOT NULL default 'standby',
-  KEY `id_freesites` (`id_freesites`)
-) TYPE=MyISAM;
-
--- 
--- Contenu de la table `freesites_urls`
--- 
-
+  KEY `id_freesite` (`id_freesite`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+        
